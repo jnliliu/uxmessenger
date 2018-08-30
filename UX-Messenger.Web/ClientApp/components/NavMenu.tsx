@@ -6,6 +6,10 @@ export class NavMenu extends React.Component<{}, {}> {
         return <div>
             <div className='info-nav top-nav'>
                 <NavLink to='/'>UX-Messenger</NavLink>
+                <a className='gh-btn btn-xs' style={{ position: 'absolute', right: 10 }} href='https://github.com/jnliliu/uxmessenger' target='_blank' aria-label='Project code on Github'>
+                    <span className='gh-ico' aria-hidden='true'></span>
+                    <span className='gh-text' id='gh-text'>Github</span>
+                </a>
             </div>
             {/*<div className='navbar navbar-inverse navbar-default main-nav top-nav' >
                 <div className='container-fluid'>

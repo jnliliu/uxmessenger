@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="ClientApp\modules\" />
     <Folder Include="wwwroot\dist\" />
   </ItemGroup>
 
