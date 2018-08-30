@@ -3,7 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import App from '../App';
-import { ChatInstance, ChatMessage } from '../Interfaces';
+import { ChatInstance, ChatMessage, ChatAddedParams } from '../Interfaces';
 import MessengerService from '../services/messenger-service';
 
 interface HomeState {
@@ -23,16 +23,16 @@ export class Home extends React.Component<RouteComponentProps<{}>, HomeState> {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChatAdded = this.onChatAdded.bind(this);
         this.onConnected = this.onConnected.bind(this);
-        this.onMessageReceived= this.onMessageReceived.bind(this);
-        
+        this.onMessageReceived = this.onMessageReceived.bind(this);
+
         //Add App event handlers
         App.onChatAdded.add(this.onChatAdded);
         App.onConnected.add(this.onConnected);
         App.onMessage.add(this.onMessageReceived);
     }
 
-    private onChatAdded(chats: ChatInstance[]) {
-        this.setState({ chats: chats });
+    private onChatAdded(args: ChatAddedParams) {
+        this.setState({ chats: args.chats });
     }
 
     private onConnected(id: string) {

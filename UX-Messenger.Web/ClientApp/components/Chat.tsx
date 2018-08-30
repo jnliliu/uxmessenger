@@ -3,8 +3,8 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import App from '../App';
-import { ChatInstance, ChatMessage, ChatState, UserDisconnectedParams } from '../Interfaces';
-import MessengerService from '../services/messenger-service';
+import { ChatInstance, ChatMessage, ChatState, UserDisconnectedParams, ChatResponseParams, ChatAddedParams } from '../Interfaces';
+import MessengerService, { RequestConnectionResponseStatus } from '../services/messenger-service';
 
 export class Chat extends React.Component<RouteComponentProps<{ id: string; }>, ChatState> {
     private chat?: ChatInstance;
@@ -16,26 +16,74 @@ export class Chat extends React.Component<RouteComponentProps<{ id: string; }>, 
 
         if (!props) throw Error('User not found');
 
-        let chat = App.getChat(this.props.match.params.id);
+        const chat = App.getChat(this.props.match.params.id);
+
+        this.handlePanelRef = this.handlePanelRef.bind(this);
+        this.handleMessageRef = this.handleMessageRef.bind(this);
+        this.handleMessageChange = this.handleMessageChange.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
 
         if (!chat) {
-            this.props.history.push('/');
+            this.state = {
+                waitingResponse: true,
+                currentMessage: '',
+                messages: []
+            };
+
+            this.appReadyHandler = this.appReadyHandler.bind(this);
+            this.chatAddedHandler = this.chatAddedHandler.bind(this);
+            this.chatResponseHandler = this.chatResponseHandler.bind(this);
+
+            App.onChatRequestResponse.add(this.chatResponseHandler);
+            App.onChatAdded.add(this.chatAddedHandler);
+            App.onReady.add(this.appReadyHandler);
         }
         else {
             chat.newMessages = false;
-            this.chat = chat;
-            this.state = this.chat.state;
-            let that = this;
+            this.initChat(chat);
+        }
+    }
 
-            this.handlePanelRef = this.handlePanelRef.bind(this);
-            this.handleMessageRef = this.handleMessageRef.bind(this);
-            this.handleMessageChange = this.handleMessageChange.bind(this);
-            this.onSubmit = this.onSubmit.bind(this);
-            this.messageReceivedHandler = this.messageReceivedHandler.bind(this);
-            this.userDisconnectedHandler = this.userDisconnectedHandler.bind(this);
+    private initChat(chat: ChatInstance) {
+        this.messageReceivedHandler = this.messageReceivedHandler.bind(this);
+        this.userDisconnectedHandler = this.userDisconnectedHandler.bind(this);
 
-            App.onMessage.add(this.messageReceivedHandler);
-            App.onUserDisconnected.add(this.userDisconnectedHandler);
+        this.chat = chat;
+        this.state = this.chat.state;
+        App.onMessage.add(this.messageReceivedHandler);
+        App.onUserDisconnected.add(this.userDisconnectedHandler);
+    }
+
+    private appReadyHandler() {
+        App.requestConnection(this.props.match.params.id);
+    }
+
+    private chatAddedHandler(args: ChatAddedParams) {
+        if (args.userId === this.props.match.params.id) {
+            const chat = App.getChat(args.groupId);
+
+            if (chat) {
+                this.initChat(chat);
+                this.props.history.push('/c/' + args.groupId);
+            } else {
+                this.props.history.push('/');
+            }
+        }
+    }
+
+    private chatResponseHandler(args: ChatResponseParams) {
+        if (args.userId === this.props.match.params.id) {
+            switch (args.status) {
+                case RequestConnectionResponseStatus.Waiting:
+                    this.setState({ waitingResponse: true });
+                    break;
+                case RequestConnectionResponseStatus.Disconnected:
+                case RequestConnectionResponseStatus.Rejected:
+                    this.props.history.push('/');
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -58,10 +106,19 @@ export class Chat extends React.Component<RouteComponentProps<{ id: string; }>, 
     public componentWillUnmount() {
         App.onMessage.remove(this.messageReceivedHandler);
         App.onUserDisconnected.remove(this.userDisconnectedHandler);
+        App.onChatRequestResponse.remove(this.chatResponseHandler);
+        App.onReady.remove(this.appReadyHandler);
+        App.onChatAdded.remove(this.chatAddedHandler);
     }
 
     public render() {
-        if (!this.state) return <div />;
+        if (!App.session.ready)
+            return <div />;
+
+        if (this.state.waitingResponse)
+            return <div className='block-ui-info'>
+                <div className='ui-info-msg'>Waiting for user response...<div className='loader'></div></div>
+            </div>;
 
         let msgContents = this.state.messages && this.getMessagesList(this.state.messages);
 

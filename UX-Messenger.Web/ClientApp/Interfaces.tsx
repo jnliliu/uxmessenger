@@ -1,4 +1,5 @@
 ﻿import { WordArray } from "crypto-js";
+import { RequestConnectionResponseStatus } from "./services/messenger-service";
 
 export interface RSAKey {
     publicKey: string;
@@ -38,6 +39,7 @@ export interface Group {
 }
 
 export interface ChatState {
+    waitingResponse: boolean;
     messages: ChatMessage[];
     currentMessage: string;
 }
@@ -56,4 +58,16 @@ export interface UserDisconnectedParams {
 export interface InputNameParams {
     text: string;
     callback: (name: string | null) => void
+}
+
+export interface ChatAddedParams {
+    chats: ChatInstance[];
+    groupId: string;
+    userId: string;
+}
+
+export interface ChatResponseParams {
+    groupId?: string;
+    userId: string;
+    status: RequestConnectionResponseStatus;
 }

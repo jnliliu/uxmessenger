@@ -1,6 +1,6 @@
 ﻿import * as CryptoJS from 'crypto-js';
 import { JSEncrypt } from 'jsencrypt';
-import { ChatInstance, ChatMessage, InputNameParams, PendingRequest, Session, UserDisconnectedParams } from './Interfaces';
+import { ChatInstance, ChatMessage, InputNameParams, PendingRequest, Session, UserDisconnectedParams, ChatResponseParams, ChatAddedParams } from './Interfaces';
 import MessengerService, { RequestConnectionResponseStatus } from './services/messenger-service';
 
 export class ApplicationEventHandler<T> {
@@ -102,7 +102,7 @@ export class StringKeyDictionary<T> implements IStringKeyDictionary<T> {
 }
 
 class Application {
-    private static readonly AES_KeySize: number = 256;
+    private static readonly AES_KeySize: number = 512;
     private static readonly AES_KeyIterations: number = 1000;
 
     private static readonly RSA_KeySize: string = '2048';
@@ -113,10 +113,11 @@ class Application {
 
     //Event Handlers
     public onConnected: ApplicationEventHandler<string> = new ApplicationEventHandler<string>();
-    public onChatAdded: ApplicationEventHandler<ChatInstance[]> = new ApplicationEventHandler<ChatInstance[]>();
+    public onChatAdded: ApplicationEventHandler<ChatAddedParams> = new ApplicationEventHandler<ChatAddedParams>();
     public onMessage: ApplicationEventHandler<ChatMessage> = new ApplicationEventHandler<ChatMessage>();
     public onReady: ApplicationEventHandler<null> = new ApplicationEventHandler<null>();
     public onUserDisconnected: ApplicationEventHandler<UserDisconnectedParams> = new ApplicationEventHandler<UserDisconnectedParams>();
+    public onChatRequestResponse: ApplicationEventHandler<ChatResponseParams> = new ApplicationEventHandler<ChatResponseParams>();
     public inputName: ApplicationEventHandler<InputNameParams> = new ApplicationEventHandler<InputNameParams>();
 
     constructor() {
@@ -162,6 +163,12 @@ class Application {
                 default:
                     break;
             }
+
+            this.onChatRequestResponse.invoke({
+                groupId: groupId,
+                userId: userId,
+                status: status
+            });
         });
 
         MessengerService.setOnUserDisconnectedHandler((groupId, userId) => {
@@ -267,6 +274,7 @@ class Application {
                 users: [{ id: userId, name: name || userId, connected: true }]
             },
             state: {
+                waitingResponse: false,
                 currentMessage: '',
                 messages: []
             },
@@ -274,7 +282,7 @@ class Application {
         };
 
         this._chats.Add(groupId, chat);
-        this.onChatAdded.invoke(this._chats.Values());
+        this.onChatAdded.invoke({ chats: this._chats.Values(), groupId: groupId, userId: userId });
     }
 
     private addPendingRequest(userId: string, generateKey: boolean = false): PendingRequest {
