@@ -6,6 +6,7 @@
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <IsPackable>false</IsPackable>
     <RootNamespace>UXMessenger</RootNamespace>
+    <UserSecretsId>837dbcac-e142-423a-9eba-4e32d3e08233</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +35,7 @@
 
   <ItemGroup>
     <Folder Include="ClientApp\modules\" />
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
   <ItemGroup>
