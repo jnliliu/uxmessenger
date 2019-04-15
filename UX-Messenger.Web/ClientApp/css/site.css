@@ -338,6 +338,24 @@ html, body, #react-app {
             margin-top: 25px;
         }
 
+.image-btn {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    width: 34px;
+    height: 34px;
+}
+
+.whatsapp-btn {
+    background-image: url(https://s18955.pcdn.co/wp-content/uploads/2017/05/WhatsApp.png);
+    background-color: #25d366;
+}
+
+.facebook-messenger-btn {
+    background-image: url(https://s18955.pcdn.co/wp-content/uploads/2018/02/facebook-messenger-1.png);
+    background-color: #0081ff;
+}
+
 @media (max-width: 767px) {
 }
 

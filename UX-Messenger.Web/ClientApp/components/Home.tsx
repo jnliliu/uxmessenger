@@ -20,6 +20,7 @@ export class Home extends React.Component<RouteComponentProps<{}>, HomeState> {
         let instance = this;
 
         this.copyId = this.copyId.bind(this);
+        this.whatsAppSend = this.whatsAppSend.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onChatAdded = this.onChatAdded.bind(this);
         this.onConnected = this.onConnected.bind(this);
@@ -68,7 +69,10 @@ export class Home extends React.Component<RouteComponentProps<{}>, HomeState> {
                         <span className='input-group-addon'>Your ID:</span>
                         <input type='text' className='form-control' readOnly={true} ref={(r) => { this.userIdInput = r; r && (r.value = App.session.id || '') }} />
                         <span className='input-group-btn'>
-                            <button className='btn btn-default btn-info' type='button' onClick={this.copyId}>Copy</button>
+                            <button className='btn image-btn whatsapp-btn' type='button' onClick={this.whatsAppSend} title='WhatsApp'></button>
+                            <button className='btn btn-default' type='button' onClick={this.copyId} title='Copy'>
+                                <span className='glyphicon glyphicon-copy' aria-hidden='true'></span>
+                            </button>
                         </span>
                     </div>
                 </div>
@@ -79,7 +83,7 @@ export class Home extends React.Component<RouteComponentProps<{}>, HomeState> {
                                 <span className='input-group-addon'>Connect to:</span>
                                 <input id='userIdElement' type='text' className='form-control' name='userId' placeholder="Enter user id" required />
                                 <span className='input-group-btn'>
-                                    <button className='btn btn-default btn-success' type='submit'>Request</button>
+                                    <button className='btn btn-default btn-success' type='submit'>Request Connection</button>
                                 </span>
                             </div>
                         </div>
@@ -97,6 +101,17 @@ export class Home extends React.Component<RouteComponentProps<{}>, HomeState> {
             copy(App.session.id);
             alert('Copied to clipboard:\n' + App.session.id);
         }
+    }
+
+    private whatsAppSend() {
+        if (App.session.id) {
+            var whatsAppUrl = App.isMobile() ? 'whatsapp://' : 'https://web.whatsapp.com/';
+            window.open(`${whatsAppUrl}send?text=${this.getChatLink()}`, '', 'width=900,height=700');
+        }
+    }
+
+    private getChatLink() {
+        return `${window.location.href}c/${App.session.id}`;
     }
 
     private onSubmit(event: any) {
